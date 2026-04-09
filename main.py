@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 from sqlmodel import Session, select
 
@@ -17,7 +17,7 @@ def on_startup():
     create_db_and_tables()
 
 
-@app.post("/", response_model=URLResponse)
+@app.post("/", response_model=URLResponse, status_code=status.HTTP_201_CREATED)
 def create_short_url(
     url_data: URLCreate,
     session: Session = Depends(get_session),
