@@ -73,6 +73,25 @@ def redirect_to_original(
     return RedirectResponse(url.original_url, status_code=302)
 
 
+@app.get("/entries", response_model=list[URLResponse])
+def list_all_entries(
+    session: Session = Depends(get_session),
+):
+    """List all entries in the database."""
+    # Get all URLs from database
+    urls = session.exec(select(URL)).all()
+    
+    # Convert to response format
+    return [
+        URLResponse(
+            short_url=f"{settings.base_url}/{url.short_code}",
+            short_code=url.short_code,
+            original_url=url.original_url,
+        )
+        for url in urls
+    ]
+
+
 @app.get("/health")
 def health_check():
     """Health check endpoint."""
