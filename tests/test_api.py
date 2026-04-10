@@ -84,6 +84,45 @@ class TestRedirectToOriginal:
         assert response.status_code == 405  # Method not allowed (GET vs POST)
 
 
+class TestListAllEntries:
+    """Test cases for listing all entries in the database."""
+
+    def test_list_entries_empty(self, client):
+        """Test listing entries when database is empty."""
+        response = client.get("/entries")
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 0
+
+    def test_list_entries_with_data(self, client, db_session):
+        """Test listing entries when database has URLs."""
+        # Create multiple URLs in the database
+        url1 = URL(original_url="https://example.com", short_code="abc123")
+        url2 = URL(original_url="https://test.com", short_code="def456")
+        db_session.add(url1)
+        db_session.add(url2)
+        db_session.commit()
+
+        # Test listing entries
+        response = client.get("/entries")
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 2
+        
+        # Check structure of entries
+        for entry in data:
+            assert "short_url" in entry
+            assert "short_code" in entry
+            assert "original_url" in entry
+        
+        # Verify data
+        short_codes = [entry["short_code"] for entry in data]
+        assert "abc123" in short_codes
+        assert "def456" in short_codes
+
+
 class TestHealthCheck:
     """Test cases for health check endpoint."""
 
